@@ -54,15 +54,8 @@ async def user(id:int):
 async def user_optional(id:Optional[int]=None):
     await asyncio.sleep(3)
     if id is not None:
-        return {"user_found": id}
-    return {"message": "No ID provided"}
-
-@app.get("/v1/user_optional/", tags = ["Optional_parameter"])
-async def user_optional(id:Optional[int]=None):
-    await asyncio.sleep(3)
-    if id is not None:
         for user in users:
             if user["id"] == id:
-                return {parameter for parameter in user}
+                return {"user": user}
             return {"message": "Usuario no encontrado"}
     return {"message": "No se proporciono id"}
