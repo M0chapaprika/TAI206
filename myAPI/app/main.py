@@ -5,7 +5,7 @@
 from typing import Optional
 from fastapi import FastAPI, status, HTTPException
 import asyncio
-
+from pydantic import BaseModel, Field
 
 # --------------------------------------
 # | INICIALIZAR LA INSTANCIA DE LA API |
@@ -23,6 +23,13 @@ users = [
     {"id": 3, "name": "Alan David Santiago de Vicente", "age": 21, "aka": "The BOMB"},
     {"id": 4, "name": "Rodriguez Ruiz Ian David", "age": 21, "aka": "The best"}
 ]
+
+#Modelo de validacion Pydantic
+class UserBase(BaseModel):
+    id:int = Field(..., gt= 0, description="Identificador de usuario", example=1)
+    name:str = Field(..., min_length= 3, max_length= 50, description="Nombre del usuario")
+    age:int = Field(..., ge= 0, le= 121, description="Edad validada entre 0 y 121"  )
+    aka:str = Field(..., min_length= 3, max_length= 50, description="Alias del usuario", example="The best")   
 
 # -------------
 # | ENDPOINTS |
@@ -69,9 +76,9 @@ async def consultaUsuarios():
         "data":users
         }
 @app.post("/v1/users", tags=['CRUD usuarios'])
-async def add_usuers(user:dict):
+async def add_usuers(user:UserBase):
     for usr in users:
-        if usr["id"] == user.get("id"):
+        if usr["id"] == user.id:
             raise HTTPException(
                 status_code=400,
                 detail= "El id ya existe"
@@ -88,16 +95,13 @@ async def add_usuers(user:dict):
 async def update_user(id: int, user_updated: dict):
     for index, usr in enumerate(users):
         if usr["id"] == id:
-            # Aseguramos que el ID del objeto coincida con el de la URL
             user_updated["id"] = id 
-            # Reemplazamos el usuario en la lista
             users[index] = user_updated
             return {
                 "message": "Usuario actualizado correctamente",
                 "datos": user_updated
             }
     
-    # Si termina el ciclo y no encontró nada:
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail="Usuario no encontrado para actualizar"
@@ -108,8 +112,8 @@ async def update_user(id: int, user_updated: dict):
 async def delete_user(id: int):
     for index, usr in enumerate(users):
         if usr["id"] == id:
-            users.pop(index) # Elimina el elemento de la lista
-            return # En 204 No Content no se suele retornar cuerpo (body)
+            users.pop(index) 
+            return 
             
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,

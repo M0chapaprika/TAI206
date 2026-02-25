@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Usuario</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='inicio.css') }}">
+</head>
+<body>
+    <div class="main-container">
+        <header>
+            <h1>Editar Usuario</h1>
+            <p>Modificando datos en Docker</p>
+        </header>
+        <section class="form-section">
+            {% if user %}
+            <form class="user-form" action="{{ url_for('actualizar_usuario') }}" method="POST">
+                <div class="form-group">
+                    <label for="id">ID (No editable):</label>
+                    <input type="number" id="id" name="id" value="{{ user.id }}" readonly style="background-color: #ddd;">
+                </div>
+                <div class="form-group">
+                    <label for="name">Nombre:</label>
+                    <input type="text" id="name" name="name" value="{{ user.name }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="age">Edad:</label>
+                    <input type="number" id="age" name="age" value="{{ user.age }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="aka">Alias (Aka):</label>
+                    <input type="text" id="aka" name="aka" value="{{ user.aka }}" required>
+                </div>
+                <button type="submit" class="btn-add" style="background-color: #f39c12;">Guardar Cambios</button>
+            </form>
+            {% else %}
+            <p>No se encontraron datos.</p>
+            {% endif %}
+            <br>
+            <a href="{{ url_for('inicio') }}" style="text-decoration: none; color: #2c3e50;">&larr; Volver a la lista</a>
+        </section>
+    </div>
+</body>
+</html>
