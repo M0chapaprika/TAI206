@@ -2,10 +2,13 @@
 # | IMPORTACIONES |
 # -----------------
 
-from typing import Optional
-from fastapi import FastAPI, status, HTTPException
+from fastapi import FastAPI, status, HTTPException, Depends
 import asyncio
+from typing import Optional
+from fastapi import security
 from pydantic import BaseModel, Field
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+import secrets
 
 # --------------------------------------
 # | INICIALIZAR LA INSTANCIA DE LA API |
@@ -18,7 +21,7 @@ app = FastAPI(
 )
 
 users = [
-    {"id": 1, "name": "Daniela Lisset Elizalde Ortiz", "age": 20, "aka": "The most beautiful girl ihesiml"}, 
+    {"id": 1, "name": "Daniela Lisset Elizalde Ortiz", "age": 20, "aka": "Infiel"}, 
     {"id": 2, "name": "Gabriela Martinez Cruz", "age": 22, "aka": "My loyal friend"}, 
     {"id": 3, "name": "Alan David Santiago de Vicente", "age": 21, "aka": "The BOMB"},
     {"id": 4, "name": "Rodriguez Ruiz Ian David", "age": 21, "aka": "The best"}
@@ -30,6 +33,22 @@ class UserBase(BaseModel):
     name:str = Field(..., min_length= 3, max_length= 50, description="Nombre del usuario")
     age:int = Field(..., ge= 0, le= 121, description="Edad validada entre 0 y 121"  )
     aka:str = Field(..., min_length= 3, max_length= 50, description="Alias del usuario", example="The best")   
+
+# Seguridad con HTTP Basic
+
+security = HTTPBasic()
+
+def verificar_Peticion(credentials: HTTPBasicCredentials=Depends(security)):
+    usuarioAuth= secrets.compare_digest(credentials.username,"iand")
+    contraAuth= secrets.compare_digest(credentials.password,"1234")
+
+    if not (usuarioAuth and contraAuth):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciales inválidas",
+        )
+
+    return credentials.username
 
 # -------------
 # | ENDPOINTS |
@@ -109,11 +128,13 @@ async def update_user(id: int, user_updated: dict):
 
 # ELIMINAR USUARIO (DELETE)
 @app.delete("/v1/users/{id}", tags=['CRUD usuarios'], status_code=status.HTTP_204_NO_CONTENT)
-async def delete_user(id: int):
+async def delete_user(id: int, username:str= Depends(verificar_Peticion)):
     for index, usr in enumerate(users):
         if usr["id"] == id:
             users.pop(index) 
-            return 
+            return {
+                "message": f"Usuario eliminado correctamente por {username}"
+                }
             
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
