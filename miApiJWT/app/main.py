@@ -14,7 +14,7 @@ from datetime import datetime, timedelta, timezone
 # --------------------------------------
 app = FastAPI(
     title="My first API JWT", 
-    description="Isaac Abdiel Sanchez Lopez - Ahora con JWT", 
+    description="Rodriguez Ruiz Ian David - Ahora con JWT", 
     version="2.0"
 )
 
@@ -69,7 +69,7 @@ async def validar_token(token: str = Depends(oauth2_scheme)):
 # ENDPOINT PARA GENERAR TOKEN (LOGIN)
 @app.post("/token", tags=["Auth"])
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    if form_data.username != "isaac" or form_data.password != "1234":
+    if form_data.username != "iand" or form_data.password != "1234":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Usuario o contraseña incorrectos",
