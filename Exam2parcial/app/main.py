@@ -29,7 +29,7 @@ citas = [
 class UserBase(BaseModel):
     id:int = Field(..., gt= 0, description="Identificador de usuario", example=1)
     nombre:str = Field(..., min_length= 5, max_length= 50, description=" Nombre del paciente ")
-    age:int = Field(..., ge= 0, le= 121, description=" Edad validada entre 0 y 121 ") 
+    edad:int = Field(..., ge= 0, le= 121, description=" Edad validada entre 0 y 121 ") 
     fecha:date = Field(..., min_length= datetime, example=" Fecha actual ")
     motivo:str = Field(..., min_length= 0, max_length= 100, description=" Motivo de la cita ")
 
@@ -57,7 +57,7 @@ def verificar_Peticion(credentials: HTTPBasicCredentials=Depends(security)):
 # ENDPOINT RAIZ DE LA API (GET)
 @app.get("/", tags = ["Start"])
 async def helloworld():
-    return {"message": " Bienvenido a las citas medicas :)"}
+    return {"message": "Hello world FastAPI"}
 
 # ENDPOINT "usuario" (GET CON PARAMETRO OBLIGATORIO)
 @app.get("/v1/cita/{id}", tags = ["Required_parameter"])
