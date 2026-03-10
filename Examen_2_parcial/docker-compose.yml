@@ -1,0 +1,8 @@
+services:
+  api:
+    build: .
+    container_name: server_fastapi_medico
+    ports:
+     - "8085:8085"
+    volumes:
+     - ./app:/app/app 
