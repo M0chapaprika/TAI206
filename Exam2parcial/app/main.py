@@ -7,7 +7,7 @@ from fastapi import FastAPI, status, HTTPException, Depends
 import asyncio
 from typing import Optional
 from fastapi import security
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import secrets
 
@@ -27,18 +27,26 @@ citas = [
 
 #Modelo de validacion Pydantic
 class UserBase(BaseModel):
-    id:int = Field(..., gt= 0, description="Identificador de usuario", example=1)
-    nombre:str = Field(..., min_length= 5, max_length= 50, description=" Nombre del paciente ")
-    edad:int = Field(..., ge= 0, le= 121, description=" Edad validada entre 0 y 121 ") 
-    fecha:date = Field(..., min_length= datetime, example=" Fecha actual ")
-    motivo:str = Field(..., min_length= 0, max_length= 100, description=" Motivo de la cita ")
+    id: int = Field(..., gt=0, description="Identificador de la cita", example=1)
+    nombre: str = Field(..., min_length=5, max_length=50, description="Nombre del paciente")
+    edad: int = Field(..., ge=0, le=121, description="Edad validada entre 0 y 121") 
+    fecha: date = Field(..., description="Fecha de la cita")
+    motivo: str = Field(..., min_length=0, max_length=100, description="Motivo de la cita")
+
+    # Nueva validación de fecha
+    @field_validator('fecha')
+    @classmethod
+    def validar_fecha_futura(cls, valor_fecha):
+        if valor_fecha <= date.today():
+            raise ValueError('La fecha de la cita debe ser posterior a la fecha actual')
+        return valor_fecha
 
 
 # Seguridad con HTTP Basic
 
-security = HTTPBasic()
+esquema_seguridad = HTTPBasic()
 
-def verificar_Peticion(credentials: HTTPBasicCredentials=Depends(security)):
+def verificar_Peticion(credentials: HTTPBasicCredentials=Depends(esquema_seguridad)):
     usuarioAuth= secrets.compare_digest(credentials.username,"root")
     contraAuth= secrets.compare_digest(credentials.password,"1234")
 
@@ -84,18 +92,40 @@ async def consultaCitas():
         "data":citas
         }
 @app.post("/v1/citas", tags=['CRUD citas'])
-async def add_citas(cita:UserBase):
+async def add_citas(cita: UserBase):
+    
+    # Validacion del ID de la cita (si ya existe)
     for cit in citas:
         if cit["id"] == cita.id:
             raise HTTPException(
                 status_code=400,
-                detail= "El id ya existe"
+                detail="El id de la cita ya existe"
             )
-    citas.append(cita)
-    return{
-        "message":"Usuario agregado correctamente",
-        "datos":cita,
-        "status":"200"
+
+    # Validar que el usuario no tenga más de 3 citas ese mismo día
+    fecha_entrante_str = cita.fecha.strftime("%Y-%m-%d") 
+    
+    contador_citas_dia = 0
+    for cit in citas:
+        # Comparamos por nombre de paciente y fecha
+        if cit["nombre"] == cita.nombre and cit.get("fecha") == fecha_entrante_str:
+            contador_citas_dia += 1
+            
+    if contador_citas_dia >= 3:
+        raise HTTPException(
+            status_code=400,
+            detail="El paciente ya alcanzó el límite máximo de 3 citas para este día"
+        )
+
+    nueva_cita = cita.model_dump() 
+    nueva_cita["fecha"] = fecha_entrante_str
+    
+    citas.append(nueva_cita)
+    
+    return {
+        "message": "Cita agregada correctamente",
+        "datos": nueva_cita,
+        "status": "200"
     }
 
 # ACTUALIZAR USUARIO (PUT)
