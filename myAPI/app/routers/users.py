@@ -32,18 +32,18 @@ async def read_users(db:Session= Depends(get_db)):
         }
     
 @router.post("/")
-async def add_usuers(user:UserBase, db:Session= Depends(get_db)):
+async def add_usuers(user: UserBase, db: Session = Depends(get_db)):
 
-    newUser= UsuarioDB(name= user.name, age= user.age, aka= user.aka) 
+    newUser = UsuarioDB(name=user.name, age=user.age, aka=user.aka) 
     
-    db.add(user)
+    db.add(newUser)
     db.commit()
-    db.refresh(user)
+    db.refresh(newUser)
 
-    return{
-        "message":"Usuario agregado correctamente",
-        "datos":user,
-        "status":"200"
+    return {
+        "message": "Usuario agregado correctamente",
+        "datos": newUser,
+        "status": "200"
     }
 
 # ACTUALIZAR USUARIO (PUT)
