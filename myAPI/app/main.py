@@ -4,7 +4,10 @@
 
 from fastapi import FastAPI
 from app.routers import misc, users
+from app.data.db import engine
+from app.data import usuario
 
+usuario.Base.metadata.create_all(bind=engine)
 
 # --------------------------------------
 # | INICIALIZAR LA INSTANCIA DE LA API |
